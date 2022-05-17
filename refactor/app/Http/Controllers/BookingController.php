@@ -35,9 +35,10 @@ class BookingController extends Controller
      */
     public function index(Request $request)
     {
-        if($user_id = $request->get('user_id')) {
+        $response = null;
+        if($request->get('user_id')) {
 
-            $response = $this->repository->getUsersJobs($user_id);
+            $response = $this->repository->getUsersJobs($request->get('user_id'));
 
         }
         elseif($request->__authenticatedUser->user_type == env('ADMIN_ROLE_ID') || $request->__authenticatedUser->user_type == env('SUPERADMIN_ROLE_ID'))
@@ -54,7 +55,7 @@ class BookingController extends Controller
      */
     public function show($id)
     {
-        $job = $this->repository->with('translatorJobRel.user')->find($id);
+        $job = ($id) ? $this->repository->with('translatorJobRel.user')->find($id) : null;
 
         return response($job);
     }
@@ -80,10 +81,12 @@ class BookingController extends Controller
      */
     public function update($id, Request $request)
     {
-        $data = $request->all();
-        $cuser = $request->__authenticatedUser;
-        $response = $this->repository->updateJob($id, array_except($data, ['_token', 'submit']), $cuser);
-
+        $response = null;
+        if ($id) {
+            $data = $request->all();
+            $cuser = $request->__authenticatedUser;
+            $response = $this->repository->updateJob($id, array_except($data, ['_token', 'submit']), $cuser);
+        }
         return response($response);
     }
 
@@ -107,13 +110,11 @@ class BookingController extends Controller
      */
     public function getHistory(Request $request)
     {
-        if($user_id = $request->get('user_id')) {
-
-            $response = $this->repository->getUsersJobsHistory($user_id, $request);
-            return response($response);
+        $response = null;
+        if($request->get('user_id')) {
+            $response = $this->repository->getUsersJobsHistory($request->get('user_id'), $request);
         }
-
-        return null;
+        return response($response);
     }
 
     /**
